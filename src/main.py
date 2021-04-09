@@ -32,7 +32,7 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
-
+###############################################################
 @app.route('/user', methods=['GET'])
 def get_user():
     return jsonify(User.getAllusers()), 200
@@ -43,10 +43,16 @@ def new_user():
     decoded_object = json.loads(request_body_user)
     return jsonify(User.create_user(decoded_object)), 200
 
-# @app.route('/user/<int:id>', methods=['DELETE'])
-# def delete_user():
-#     return jsonify(User.deleteUser(id)), 200
+@app.route('/user/<int:id>/newChar/', methods=['PUT'])
+def new_favChar(id):
+    return jsonify(User.newFavChar(id))
 
+
+@app.route('/user/<int:id>', methods=['DELETE'])
+def delete_user(id):
+    return jsonify(User.deleteUser(id)), 200
+
+#########################################################
 @app.route('/character', methods=['GET'])
 def get_character():
     return jsonify(Character.getAllcharacters()), 200
@@ -57,6 +63,7 @@ def new_character():
     decoded_object = json.loads(request_body_char)
     return jsonify(Character.create_character(decoded_object)), 200
 
+###########################################################
 @app.route('/planet', methods=['GET'])
 def get_planet():
     return jsonify(Planet.getAllplanets()), 200

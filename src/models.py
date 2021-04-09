@@ -50,6 +50,16 @@ class User(db.Model):
         db.session.commit()
         return("The user has been deleted")
 
+    def newFavChar(id):
+        user = User.query.get(id)
+        
+        if user is None:
+            raise APIException('User not found', status_code=404)
+        if "characters" in body:
+            user.characters = body["characters"]
+        return "A character has been added to user favorite"
+
+
 class Character(db.Model):
     __tablename__='characters'
     id = db.Column(db.Integer, primary_key=True)
@@ -59,7 +69,7 @@ class Character(db.Model):
     # height = db.Column(db.Integer, nullable=False)
     # eye_color=db.Column(db.String(250), nullable=False)
     # hair_color=db.Column(db.String(250), nullable=False)
-    #users = relationship("User", secondary=fav_char back_populates="favoriteChars") 
+    #users = db.relationship("User", secondary=fav_char, back_populates="favoriteChars") 
 
     
 
@@ -86,7 +96,7 @@ class Planet(db.Model):
     __tablename__='planets'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(250), nullable=False)
-    #users = relationship("User", secondary=fav_planet back_populates="favoritePlanets") 
+    #users = db.relationship("User", secondary=fav_planet, back_populates="favoritePlanets") 
 
     
 
