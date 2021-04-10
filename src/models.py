@@ -3,8 +3,13 @@ from flask import Flask, request, jsonify, url_for
 
 db = SQLAlchemy()
 
-fav_char = db.Table('fav_chars', db.metadata, db.Column("user_id", db.Integer, db.ForeignKey("users.id")), db.Column("char_id", db.Integer, db.ForeignKey("characters.id")))
-fav_planet = db.Table('fav_planets', db.metadata, db.Column("user_id", db.Integer, db.ForeignKey("users.id")), db.Column("plan_id", db.Integer, db.ForeignKey("planets.id")))
+fav_char = db.Table('fav_chars', db.metadata, 
+    db.Column("user_id", db.Integer, db.ForeignKey("users.id")), 
+    db.Column("char_id", db.Integer, db.ForeignKey("characters.id")))
+
+fav_planet = db.Table('fav_planets', db.metadata, 
+    db.Column("user_id", db.Integer, db.ForeignKey("users.id")), 
+    db.Column("plan_id", db.Integer, db.ForeignKey("planets.id")))
 
 class User(db.Model):
     __tablename__='users'
@@ -15,8 +20,9 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(80), unique=False, nullable=False)
     is_active = db.Column(db.Boolean(), unique=False, nullable=False, default=True)
-    characters = db.relationship("Character", secondary=fav_char) 
-    planets = db.relationship("Planet", secondary=fav_planet) 
+    characters = db.relationship("Character", secondary=fav_char, back_populates="users") 
+    planets = db.relationship("Planet", secondary=fav_planet, back_populates="users") 
+    
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -36,6 +42,12 @@ class User(db.Model):
         all_users = list(map(lambda x: x.serialize(), users_query))
         return(all_users)
     
+    def getUser(id):
+        user_query = User.query.get(id)
+        
+        return(user_query.serialize())
+
+
     def create_user(request_body_user):
         user = User(name=request_body_user["name"], lastname=request_body_user["lastname"], username=request_body_user["username"], email=request_body_user["email"], password=request_body_user["password"])
         db.session.add(user)
@@ -50,14 +62,17 @@ class User(db.Model):
         db.session.commit()
         return("The user has been deleted")
 
-    def newFavChar(id):
+    def newFavChar(id, char_id):
         user = User.query.get(id)
-        
+        char = Character.query.get(char_id) 
         if user is None:
             raise APIException('User not found', status_code=404)
-        if "characters" in body:
-            user.characters = body["characters"]
-        return "A character has been added to user favorite"
+        if char is None:
+            raise APIException('Char not found', status_code=404)
+       
+        user.characters.append(char)
+        db.session.commit()
+        return user.serialize()
 
 
 class Character(db.Model):
@@ -69,10 +84,10 @@ class Character(db.Model):
     # height = db.Column(db.Integer, nullable=False)
     # eye_color=db.Column(db.String(250), nullable=False)
     # hair_color=db.Column(db.String(250), nullable=False)
-    #users = db.relationship("User", secondary=fav_char, back_populates="favoriteChars") 
-
     
-
+    #user_id = db.Column(db.Integer, db.ForeignKey("User.id"))
+    users = db.relationship("User", secondary=fav_char, back_populates="characters") 
+   
     def serialize(self):
         return {
             "id": self.id,
@@ -97,7 +112,7 @@ class Planet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(250), nullable=False)
     #users = db.relationship("User", secondary=fav_planet, back_populates="favoritePlanets") 
-
+    users = db.relationship("User", secondary=fav_planet, back_populates="planets") 
     
 
     def serialize(self):

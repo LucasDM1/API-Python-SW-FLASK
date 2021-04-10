@@ -37,15 +37,19 @@ def sitemap():
 def get_user():
     return jsonify(User.getAllusers()), 200
 
+@app.route('/user/<int:id>', methods=['GET'])
+def get_Oneuser(id):
+    return jsonify(User.getUser(id)), 200    
+
 @app.route('/user', methods=['POST'])
 def new_user():
     request_body_user=request.data
     decoded_object = json.loads(request_body_user)
     return jsonify(User.create_user(decoded_object)), 200
 
-@app.route('/user/<int:id>/newChar/', methods=['PUT'])
-def new_favChar(id):
-    return jsonify(User.newFavChar(id))
+@app.route('/user/<int:id>/newChar/<int:char_id>', methods=['PUT'])
+def new_favChar(id, char_id):
+    return jsonify(User.newFavChar(id, char_id))
 
 
 @app.route('/user/<int:id>', methods=['DELETE'])
